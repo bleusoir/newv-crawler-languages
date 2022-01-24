@@ -13,10 +13,12 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.10",
     "eureka-js-client": "^4.5.0",
+    "kafka-node": "^5.0.0",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
     "koa-router": "^10.1.1",
     "moment": "^2.29.1",
+    "moment-timezone": "^0.5.34",
     "node-schedule": "^2.1.0",
     "puppeteer": "^13.0.1"
   },

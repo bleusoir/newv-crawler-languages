@@ -1,7 +1,6 @@
 import Koa from 'koa';
 import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
-
 import api from './api';
 import scheduler from './scheduler';
 import eurekaClient from './modules';

@@ -13,4 +13,18 @@ class VersionInfo {
   updated: any = null;
 }
 
-export default { VersionInfo };
+export interface IVersionInfo {
+  id: number;
+  icon: string;
+  name: string;
+  version_num: number;
+  version_text: string;
+  is_ga: boolean;
+  feature_count: number;
+  fixed_issue_count: number;
+  update_date_text: any;
+  created: any;
+  updated: any;
+}
+
+export { VersionInfo };

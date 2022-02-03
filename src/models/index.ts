@@ -1,5 +1,5 @@
 // noinspection JSUnusedGlobalSymbols
-class VersionInfo {
+class VersionInfo implements IVersionInfo {
   id: number = 0;
   icon: string = '';
   name: string = '';

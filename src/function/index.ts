@@ -9,6 +9,7 @@ import { IVersionInfo, VersionInfo } from '../models';
 const { log, error } = console,
   KST = 'Asia/Seoul',
   ORACLE_DOMAIN = 'https://www.oracle.com',
+  NODEJS_DOMAIN = 'https://nodejs.org/',
   OPENJDK_DOMAIN = 'https://openjdk.java.net/projects/jdk/',
   OPENJDK_TAG_PREFIX_URL = 'https://github.com/openjdk/jdk',
   Producer = kafka.Producer,
@@ -55,7 +56,7 @@ const obj = {
 
       const oracleJdkVersion = new VersionInfo();
       oracleJdkVersion.name = 'ORACLE_JDK';
-      oracleJdkVersion.version_text = jdkArr[0].trim().toLowerCase().replace('(ga)', '');
+      oracleJdkVersion.version_text = jdkArr[0].trim().toLowerCase().replace('(ga)', '').trim();
       oracleJdkVersion.version_num = parseFloat(jdkArr[0].trim().split(' ')[0].trim());
       oracleJdkVersion.is_ga = jdkArr[0].trim().split(' ')[1].toUpperCase().includes('GA');
       oracleJdkVersion.created = moment_timezone().tz(KST).format();
@@ -99,7 +100,6 @@ const obj = {
         const lastestArr = lastestGA.trim().split(' ');
         openJdkVersion.is_ga = true;
         openJdkVersion.name = 'OPEN_JDK';
-        openJdkVersion.version_text = lastestGA;
         openJdkVersion.version_num = parseFloat(lastestArr[0]);
         openJdkVersion.created = moment_timezone().tz(KST).format();
         openJdkVersion.update_date_text = lastestArr.length >= 3
@@ -130,6 +130,57 @@ const obj = {
       sendKafka(openJdkVersion);
 
       return openJdkVersion;
+
+    } catch (err) {
+      error(err);
+    }
+  },
+  crawlingNodeJS: async () => {
+
+    log('START CRAWLING NODE JS...', new Date());
+
+    try {
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+      await page.goto(`${NODEJS_DOMAIN}/en`);
+      await page.waitForSelector('div#home-intro > div.home-downloadblock');
+      let html = await page.mainFrame().content();
+      let $ = cheerio.load(html);
+      const lists = $('div#home-intro > div.home-downloadblock');
+
+      const nodeJsVersion = new VersionInfo();
+
+      lists.each((i, el) => {
+        const version = $(el).text().trim();
+
+        if (version.toLowerCase().includes(' current')) {
+          nodeJsVersion.version_text = version.split(' ')[0].trim();
+          nodeJsVersion.name = 'NODE_JS';
+          nodeJsVersion.version_num = parseFloat(nodeJsVersion.version_text);
+          nodeJsVersion.created = moment_timezone().tz(KST).format();
+          nodeJsVersion.update_date_text = '';
+
+          return false;
+        }
+      });
+
+      await page.goto(`${NODEJS_DOMAIN}/dist/v${nodeJsVersion.version_text}/`);
+      html = await page.mainFrame().content();
+
+      $ = cheerio.load(html);
+
+      $('pre').text()
+        .split('\n')
+        .filter(v => v)
+        .forEach((v) => {
+          let dateText = v.split(/\s\s+/g)[1];
+
+          if (dateText != undefined) {
+            log(dateText);
+            nodeJsVersion.update_date_text = moment(dateText, 'DD-MMM-YYYY HH:mm').format();
+            return false;
+          }
+        });
 
     } catch (err) {
       error(err);
